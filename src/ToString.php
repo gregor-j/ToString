@@ -82,7 +82,9 @@ final class ToString
         return $array === []
             ? '[]'
             : '[' . implode(', ', array_map(
-                fn($key, $value) => sprintf('%s => %s', self::fromAny($key), self::fromAny($value)),
+                fn($key, $value) => is_string($value) // issue #12 quotes around strings in arrays
+                    ? sprintf('%s => "%s"', self::fromAny($key), self::fromAny($value))
+                    : sprintf('%s => %s', self::fromAny($key), self::fromAny($value)),
                 array_keys($array),
                 array_values($array)
             )) . ']';
