@@ -355,7 +355,7 @@ final class ToStringTest extends TestCase
             [false, 'false'],
             [[], '[]'],
             [[true], '[0 => true]'],
-            [new \stdClass(), 'object'],
+            [new \stdClass(), 'stdClass'],
         ];
     }
 
