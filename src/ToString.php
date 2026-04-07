@@ -80,13 +80,9 @@ final class ToString
          * Convert string to its byte array and process each byte.
          */
         $bytes = unpack('C*', $string);
-        $result = '';
-        if (is_array($bytes)) {
-            foreach ($bytes as $byte) {
-                $result .= self::fromByte($byte);
-            }
-        }
-        return $result;
+        return is_array($bytes)
+            ? implode('', array_map([self::class, 'fromByte'], $bytes))
+            : '';
     }
 
     /**
