@@ -6,6 +6,8 @@ use GregorJ\ToString\ToString;
 use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
 
+use function chr;
+
 /**
  * Class ToStringTest
  */
