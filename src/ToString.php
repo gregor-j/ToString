@@ -43,28 +43,15 @@ final class ToString
          * see PHP escape sequences:
          * https://www.php.net/manual/regexp.reference.escape.php
          */
-        switch ($byte) {
-            case 7:
-                // alarm, that is, the BEL character (hex 07)
-                return '\\a';
-            case 9:
-                // tab (hex 09)
-                return '\\t';
-            case 10:
-                // newline (hex 0A)
-                return '\\n';
-            case 12:
-                // formfeed (hex 0C)
-                return '\\f';
-            case 13:
-                // carriage return (hex 0D)
-                return '\\r';
-            case 27:
-                //escape (hex 1B)
-                return '\\e';
-            default:
-                return sprintf("\\x%'.02X", $byte);
-        }
+        return match ($byte) {
+            7 => '\\a',  // alarm, that is, the BEL character (hex 07)
+            9 => '\\t',  // tab (hex 09)
+            10 => '\\n', // newline (hex 0A)
+            12 => '\\f', // formfeed (hex 0C)
+            13 => '\\r', // carriage return (hex 0D)
+            27 => '\\e', // escape (hex 1B)
+            default => sprintf("\\x%'.02X", $byte),
+        };
     }
 
     /**
