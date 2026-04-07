@@ -4,7 +4,13 @@ name: "CI pipeline"
 on:
   # Triggers the workflow on push or pull request events
   push:
+    branches:
+      - main
   pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
 
   workflow_dispatch:
 
