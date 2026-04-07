@@ -286,7 +286,7 @@ final class ToStringTest extends TestCase
     public function testFromByte(int $byte, string $expected): void
     {
         $actual = ToString::fromByte($byte);
-        static::assertSame($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -317,7 +317,7 @@ final class ToStringTest extends TestCase
     public function testFromBoolean(bool $bool, string $expected): void
     {
         $actual = ToString::fromBoolean($bool);
-        static::assertSame($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -339,7 +339,7 @@ final class ToStringTest extends TestCase
     public function testFromString(string $string, string $expected): void
     {
         $actual = ToString::fromString($string);
-        static::assertSame($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -369,7 +369,7 @@ final class ToStringTest extends TestCase
     public function testFromAny($mixed, string $expected): void
     {
         $actual = ToString::fromAny($mixed);
-        static::assertSame($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -408,6 +408,6 @@ final class ToStringTest extends TestCase
     public function testFromArray(array $array, string $expected): void
     {
         $actual = ToString::fromArray($array);
-        static::assertSame($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 }
