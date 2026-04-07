@@ -3,6 +3,7 @@
 namespace Tests\GregorJ\ToString;
 
 use GregorJ\ToString\ToString;
+use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -284,6 +285,15 @@ final class ToStringTest extends TestCase
     {
         $actual = ToString::fromByte($byte);
         static::assertSame($expected, $actual);
+    }
+
+    /**
+     * @return void
+     */
+    public function testFromByteException(): void
+    {
+        $this->expectException(OutOfBoundsException::class);
+        ToString::fromByte(-1);
     }
 
     /**

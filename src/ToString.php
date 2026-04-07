@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace GregorJ\ToString;
 
+use OutOfBoundsException;
+
 /**
  * Class ToString
  */
@@ -31,6 +33,9 @@ final class ToString
      */
     public static function fromByte(int $byte): string
     {
+        if ($byte < 0 || $byte > 255) {
+            throw new OutOfBoundsException('Byte must be between 0 and 255');
+        }
         if ($byte > 31 && $byte < 127) {
             return chr($byte);
         }
