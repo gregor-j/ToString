@@ -107,6 +107,6 @@ final class ToString
         if (is_array($value)) {
             return self::fromArray($value);
         }
-        return gettype($value);
+        return is_object($value) ? get_class($value) : gettype($value);
     }
 }
