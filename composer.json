@@ -1,6 +1,6 @@
 {
     "name": "gregorj/to-string",
-    "description": "A very simple library that ensures non-printable data types in PHP are converted to a printable string.",
+    "description": "A simple PHP library for turning values into readable strings.",
     "type": "library",
     "license": "MIT",
     "authors": [
