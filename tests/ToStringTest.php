@@ -354,7 +354,7 @@ final class ToStringTest extends TestCase
             [true, 'true'],
             [false, 'false'],
             [[], '[]'],
-            [[true], '[0 => true]'],
+            [[true], '[0: true]'],
             [new \stdClass(), 'stdClass'],
         ];
     }
@@ -379,22 +379,22 @@ final class ToStringTest extends TestCase
             // empty array
             [[], '[]'],
             // sequential array with scalar values
-            [[1, 2, 3], '[0 => 1, 1 => 2, 2 => 3]'],
+            [[1, 2, 3], '[0: 1, 1: 2, 2: 3]'],
             // boolean values
-            [[true, false], '[0 => true, 1 => false]'],
+            [[true, false], '[0: true, 1: false]'],
             // string values (non-printable chars are escaped)
-            [['hello' . chr(10) . 'world'], '[0 => "hello\\nworld"]'],
+            [['hello' . chr(10) . 'world'], '[0: "hello\\nworld"]'],
             // associative array
-            [['key' => 'NULL', 'num' => 42], '[key => "NULL", num => 42]'],
+            [['key' => 'NULL', 'num' => 42], '[key: "NULL", num: 42]'],
             // string key with non-printable chars
-            [[chr(9) . 'tab' => 'val'], '[\\ttab => "val"]'],
+            [[chr(9) . 'tab' => 'val'], '[\\ttab: "val"]'],
             // nested array
-            [['a' => [1, 2], 'b' => 'x'], '[a => [0 => 1, 1 => 2], b => "x"]'],
+            [['a' => [1, 2], 'b' => 'x'], '[a: [0: 1, 1: 2], b: "x"]'],
             // deeply nested array
-            [[[['deep']]], '[0 => [0 => [0 => "deep"]]]'],
+            [[[['deep']]], '[0: [0: [0: "deep"]]]'],
             // mixed types
-            [['b' => true, 'n' => null, 'f' => 1.5], '[b => true, n => NULL, f => 1.5]'],
-            [['' => 's', 'n' => null], '[ => "s", n => NULL]'],
+            [['b' => true, 'n' => null, 'f' => 1.5], '[b: true, n: NULL, f: 1.5]'],
+            [['' => 's', 'n' => null], '["": "s", n: NULL]'],
         ];
     }
 
