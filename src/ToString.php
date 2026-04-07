@@ -73,6 +73,22 @@ final class ToString
     }
 
     /**
+     * Recursively convert an array to a human-readable string.
+     * @param array<mixed> $array
+     * @return string
+     */
+    public static function fromArray(array $array): string
+    {
+        return $array === []
+            ? '[]'
+            : '[' . implode(', ', array_map(
+                fn($key, $value) => sprintf('%s => %s', self::fromAny($key), self::fromAny($value)),
+                array_keys($array),
+                array_values($array)
+            )) . ']';
+    }
+
+    /**
      * Convert any value to a readable string.
      * @param mixed $value
      * @return string
@@ -87,6 +103,9 @@ final class ToString
         }
         if (is_string($value)) {
             return self::fromString($value);
+        }
+        if (is_array($value)) {
+            return self::fromArray($value);
         }
         return gettype($value);
     }
