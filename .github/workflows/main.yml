@@ -1,75 +1,62 @@
-name: "CI pipeline"
+name: CI
 
-# Controls when the action will run.
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
-
+  push:
   workflow_dispatch:
 
 permissions:
   contents: "read"
 
 jobs:
-
   composer:
-    name: "Composer config validation"
-    runs-on: "ubuntu-latest"
+    name: composer validate
+    runs-on: ubuntu-latest
     steps:
-      - name: "GIT checkout"
-        # noinspection UndefinedAction
-        uses: "actions/checkout@v4"
-      - name: "Validate composer.json"
-        run: "composer validate --strict"
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - run: composer validate --strict
 
-  # tests depending on PHP version
   php:
-    name: "PHP"
+    name: PHP ${{ matrix.php-version }} (${{ matrix.dependencies }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        php_version: [ '8.1', '8.2', '8.3' ]
-
+        php-version: ['8.1', '8.2', '8.3', '8.4']
+        dependencies: ['default']
+        include:
+          - php-version: '8.1'
+            dependencies: 'lowest'
     steps:
-
-      - name: "GIT checkout"
-        # noinspection UndefinedAction
-        uses: "actions/checkout@v4"
-
-      - name: "Setup PHP"
-        uses: "shivammathur/setup-php@v2"
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
-          php-version: "${{ matrix.php_version }}"
-          coverage: "xdebug"
+          php-version: ${{ matrix.php-version }}
 
-      - name: "Get composer cache directory"
-        id: "composer-cache"
-        run: 'echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT'
+      - name: Install dependencies (default)
+        if: matrix.dependencies == 'default'
+        run: composer update --prefer-dist --no-interaction --no-progress
 
-      - name: "Cache composer dependencies"
-        uses: "actions/cache@v3"
-        with:
-          path: "${{ steps.composer-cache.outputs.dir }}"
-          key: "${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}"
-          restore-keys: "${{ runner.os }}-composer-"
+      - name: Install dependencies (lowest)
+        if: matrix.dependencies == 'lowest'
+        run: composer update --prefer-lowest --prefer-dist --no-interaction --no-progress
 
-      - name: "Composer install dependencies"
-        run: "composer install --prefer-dist --no-progress"
+      - name: Audit dependencies
+        if: matrix.php-version == '8.1'
+        run: composer audit
 
-      - name: "PHP_CodeSniffer"
-        run: "php vendor/bin/phpcs"
+      - name: Lint PHP files
+        run: find src tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
 
-      - name: "PHPStan Static Analysis"
-        uses: "php-actions/phpstan@v3"
-        with:
-          php_version: "${{ matrix.php_version }}"
-          configuration: "phpstan.neon"
+      - name: Check coding style
+        run: php vendor/bin/phpcs
 
-      - name: "PHPUnit tests"
-        run: "php vendor/bin/phpunit --coverage-text"
+      - name: Run tests
+        run: php vendor/bin/phpunit
+
+      - name: Run static analysis
+        run: php vendor/bin/phpstan analyse --no-progress
+
