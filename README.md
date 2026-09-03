@@ -46,4 +46,16 @@ echo ToString::fromAny(new stdClass());
 - Array output is currently designed for human readability, not for parsing back into PHP.
 - Recursive/self-referencing arrays are currently not supported.
 
+## Development
+
+All development commands (install, test, lint, analyze, beautify, sniff, audit,
+validate) run via Docker through the `Makefile`, so no local PHP installation is
+needed. Run `make help` to list all targets.
+
+Most local targets require `PHP_VERSION`, for example:
+
+```sh
+make install PHP_VERSION=8.1
+```
+
 [license-mit]: https://img.shields.io/badge/license-MIT-blue.svg
