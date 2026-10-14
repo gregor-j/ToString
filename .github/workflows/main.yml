@@ -14,10 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-      - run: composer validate --strict
+      - run: make validate
 
   php:
     name: PHP ${{ matrix.php-version }} (${{ matrix.dependencies }})
@@ -38,25 +35,24 @@ jobs:
 
       - name: Install dependencies (default)
         if: matrix.dependencies == 'default'
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: make install PHP_VERSION=${{ matrix.php-version }}
 
       - name: Install dependencies (lowest)
         if: matrix.dependencies == 'lowest'
-        run: composer update --prefer-lowest --prefer-dist --no-interaction --no-progress
+        run: make install PHP_VERSION=${{ matrix.php-version }} DEPENDENCIES_LOWEST=1
 
       - name: Audit dependencies
-        if: matrix.php-version == '8.1'
-        run: composer audit
+        if: matrix.php-version == '8.1' && matrix.dependencies == 'default'
+        run: make audit
 
       - name: Lint PHP files
-        run: find src tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+        run: make lint PHP_VERSION=${{ matrix.php-version }}
 
       - name: Check coding style
-        run: php vendor/bin/phpcs
+        run: make sniff PHP_VERSION=${{ matrix.php-version }}
 
       - name: Run tests
-        run: php vendor/bin/phpunit
+        run: make test PHP_VERSION=${{ matrix.php-version }}
 
       - name: Run static analysis
-        run: php vendor/bin/phpstan analyse --no-progress
-
+        run: make analyze PHP_VERSION=${{ matrix.php-version }}

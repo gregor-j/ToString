@@ -6,13 +6,8 @@ COMPOSER_CACHE_DIR := $(HOME)/.cache/composer
 DOCKER_USER        := --user "$$(id -u)":"$$(id -g)"
 DOCKER_MOUNT       := --volume "$$(pwd)":/app --workdir /app
 
-# --prefer-lowest only has an effect on "composer update", not "composer
-# install" (which just reproduces composer.lock) - switch commands so the
-# flag actually does something, matching the CI "lowest" matrix job.
-ifdef DEPENDENCIES_LOWEST
-COMPOSER_INSTALL_CMD := update --prefer-lowest
-else
-COMPOSER_INSTALL_CMD := install
+ifeq ($(DEPENDENCIES_LOWEST),1)
+COMPOSER_LOWEST := --prefer-lowest
 endif
 
 # Optional: set CA_CERT_FILE to a PEM file (e.g. a corporate proxy root CA)
@@ -26,7 +21,7 @@ CA_MOUNT     :=
 CA_TRUST_CMD :=
 endif
 
-.PHONY: help clean check-php-version install test lint beautify sniff audit validate
+.PHONY: help clean check-php-version install test lint analyze beautify sniff audit validate
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | sort | \
@@ -43,8 +38,9 @@ check-php-version:
 
 install: check-php-version ## Install composer dependencies for PHP_VERSION (set DEPENDENCIES_LOWEST=1 for --prefer-lowest)
 	@mkdir -p "$(COMPOSER_CACHE_DIR)"
-	docker run --rm -t --init $(DOCKER_USER) \
+	@docker run --rm -t --init $(DOCKER_USER) \
 		--env HTTP_PROXY --env HTTPS_PROXY --env NO_PROXY \
+		--env http_proxy --env https_proxy --env no_proxy \
 		--env COMPOSER_CACHE_DIR=/tmp/composer-cache \
 		--volume "$(COMPOSER_CACHE_DIR)":/tmp/composer-cache \
 		$(CA_MOUNT) \
@@ -52,12 +48,16 @@ install: check-php-version ## Install composer dependencies for PHP_VERSION (set
 		$(COMPOSER_IMAGE) sh -c '\
 			$(CA_TRUST_CMD) \
 			composer config platform.php "$(PHP_VERSION)" && \
-			composer $(COMPOSER_INSTALL_CMD) --prefer-dist --no-interaction --no-progress; \
+			composer update $(COMPOSER_LOWEST) --prefer-dist --no-interaction --no-progress; \
 			status=$$?; \
-			composer config --unset platform; \
-			composer config --unset config 2>/dev/null; \
+			composer config --unset platform.php >/dev/null 2>&1 || true; \
+			composer config --unset platform >/dev/null 2>&1 || true; \
+			php -r '\''$$f = "composer.json"; $$j = json_decode(file_get_contents($$f), true); if (is_array($$j) && isset($$j["config"]) && $$j["config"] === []) { unset($$j["config"]); file_put_contents($$f, json_encode($$j, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL); }'\''; \
 			exit $$status \
-		'
+		'; \
+		status=$$?; \
+		rm -f composer.lock; \
+		exit $$status
 
 test: check-php-version ## Run PHPUnit for PHP_VERSION
 	docker run --rm -t --init $(DOCKER_USER) $(DOCKER_MOUNT) \
@@ -82,6 +82,7 @@ sniff: check-php-version ## Run PHPCS (code style check) for PHP_VERSION
 audit: ## Run composer audit (checks dependencies for known vulnerabilities)
 	docker run --rm -t --init $(DOCKER_USER) \
 		--env HTTP_PROXY --env HTTPS_PROXY --env NO_PROXY \
+		--env http_proxy --env https_proxy --env no_proxy \
 		$(CA_MOUNT) $(DOCKER_MOUNT) \
 		$(COMPOSER_IMAGE) sh -c '$(CA_TRUST_CMD) composer audit'
 
