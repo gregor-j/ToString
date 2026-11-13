@@ -13,9 +13,12 @@
   - `fromString(string $value)`
   - `fromByte(int $byte)`
 - String handling is byte-based (`unpack('C*', $value)`), then each byte is escaped via `fromByte()`.
-- Array formatting is flat and recursive via `fromAny()`; object formatting uses `var_export($value, true)`.
+- Array formatting is flat and recursive via `fromAny()`; objects are represented by their class name.
 
 ## Developer Workflows (Use These First)
+- Run all QA and audit one resolved snapshot:
+  - `make check PHP_VERSION=8.1`
+  - `make check PHP_VERSION=8.5 DEPENDENCIES_LOWEST=1`
 - Install dependencies:
   - `make install PHP_VERSION=8.1`
 - Run tests:
@@ -27,6 +30,8 @@
   - `make beautify PHP_VERSION=8.1`
 - Security audit:
   - `make audit`
+
+See README for the PHP matrix, locking, proxy and CA configuration.
 
 ## Testing & Quality Conventions
 - Tests are in `tests/ToStringTest.php` and heavily use data providers (including many byte-range cases).
@@ -47,4 +52,3 @@
 ## When Changing Behavior
 - Update/add data-provider cases in `tests/ToStringTest.php` first, then implement in `src/ToString.php`.
 - Validate with `make test PHP_VERSION=8.1` and `make analyze PHP_VERSION=8.1` before finalizing changes.
-
