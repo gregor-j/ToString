@@ -1,62 +1,52 @@
-name: CI
+name: "CI pipeline"
 
 on:
   pull_request:
-  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: "read"
 
+concurrency:
+  group: "ci-${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
 jobs:
+
   composer:
-    name: composer validate
-    runs-on: ubuntu-latest
+    name: "composer validate"
+    runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v7
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-      - run: composer validate --strict
+      - uses: "actions/checkout@v7"
+      - name: "Validate composer.json"
+        run: "composer validate --strict"
 
   php:
-    name: PHP ${{ matrix.php-version }} (${{ matrix.dependencies }})
-    runs-on: ubuntu-latest
+    name: "PHP ${{ matrix.php-version }} (${{ matrix.dependencies }})"
+    runs-on: "ubuntu-latest"
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.1', '8.2', '8.3', '8.4']
-        dependencies: ['default']
+        php-version:
+          - "8.1"
+          - "8.2"
+          - "8.3"
+          - "8.4"
+          - "8.5"
+        dependencies:
+          - "default"
         include:
-          - php-version: '8.1'
-            dependencies: 'lowest'
+          - php-version: "8.1"
+            dependencies: "lowest"
+          - php-version: "8.5"
+            dependencies: "lowest"
     steps:
-      - uses: actions/checkout@v7
-      - uses: shivammathur/setup-php@v2
+      - name: "git checkout"
+        uses: "actions/checkout@v7"
         with:
-          php-version: ${{ matrix.php-version }}
-
-      - name: Install dependencies (default)
-        if: matrix.dependencies == 'default'
-        run: composer update --prefer-dist --no-interaction --no-progress
-
-      - name: Install dependencies (lowest)
-        if: matrix.dependencies == 'lowest'
-        run: composer update --prefer-lowest --prefer-dist --no-interaction --no-progress
-
-      - name: Audit dependencies
-        if: matrix.php-version == '8.1'
-        run: composer audit
-
-      - name: Lint PHP files
-        run: find src tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
-
-      - name: Check coding style
-        run: php vendor/bin/phpcs
-
-      - name: Run tests
-        run: php vendor/bin/phpunit
-
-      - name: Run static analysis
-        run: php vendor/bin/phpstan analyse --no-progress
-
+          persist-credentials: false
+      - name: "Install, check and audit the same dependency snapshot"
+        env:
+          LOWEST: "${{ matrix.dependencies == 'lowest' && '1' || '0' }}"
+        run: "make check PHP_VERSION=${{ matrix.php-version }} DEPENDENCIES_LOWEST=$LOWEST"
